@@ -1,0 +1,59 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/raydium-lp-farming/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  walletAddress String @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  transactions Transaction[]
+  
+  @@map("users")
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type          TransactionType
+  poolId        String
+  poolName      String
+  tokenA        String
+  tokenB        String
+  amountA       String
+  amountB       String
+  lpTokenAmount String?
+  signature     String   @unique
+  status        TransactionStatus @default(PENDING)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("transactions")
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  HARVEST
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
